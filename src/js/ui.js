@@ -507,6 +507,9 @@ export class UIManager {
   }
 
   renderEvents(events) {
+    // Store events for filtering
+    this.currentEvents = events || [];
+
     const container = document.getElementById('events-content');
     container.innerHTML = '';
 
@@ -922,5 +925,51 @@ export class UIManager {
         btn.classList.remove('active');
       }
     });
+  }
+
+  showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+
+    // Icon based on type
+    let iconClass = 'fa-circle-info';
+    if (type === 'success') iconClass = 'fa-circle-check';
+    if (type === 'error') iconClass = 'fa-circle-exclamation';
+    if (type === 'warning') iconClass = 'fa-triangle-exclamation';
+
+    toast.innerHTML = `
+      <i class="fa-solid ${iconClass}"></i>
+      <span>${message}</span>
+      <button class="toast-close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    `;
+
+    // Add to container
+    container.appendChild(toast);
+
+    // Auto remove after 3 seconds
+    const timeout = setTimeout(() => {
+      removeToast();
+    }, 3000);
+
+    // Close button
+    const closeBtn = toast.querySelector('.toast-close');
+    closeBtn.addEventListener('click', () => {
+      clearTimeout(timeout);
+      removeToast();
+    });
+
+    function removeToast() {
+      toast.style.animation = 'slideIn 0.3s ease reverse forwards';
+      toast.addEventListener('animationend', () => {
+        if (toast.parentNode) {
+          toast.remove();
+        }
+      });
+    }
   }
 }

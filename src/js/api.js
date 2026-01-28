@@ -1,3 +1,5 @@
+import { CONFIG } from './config.js';
+
 export class APIManager {
   constructor() {
     this.baseUrl = 'https://date.nager.at/api/v3'; // Example API base URL, will need adjustment based on docs
@@ -73,7 +75,7 @@ export class APIManager {
   }
 
   async fetchEvents(city) {
-    const apiKey = 'xRIeuAsRCuJ6AhSKbksjxlTGFtSzrDvv'; // User needs to provide this
+    const apiKey = CONFIG.TICKETMASTER_API_KEY;
     try {
       // Using Ticketmaster Discovery API
       // segmentId KZFzniwnSyZfZ7v7nJ = Music

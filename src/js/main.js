@@ -134,6 +134,13 @@ class App {
         sidebarOverlay.classList.remove('active');
       });
     }
+    // Event Filters
+    document.querySelectorAll('.event-filter').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const category = e.target.dataset.category;
+        this.ui.filterEvents(category);
+      });
+    });
   }
 
   handleSave(btn) {
@@ -163,6 +170,7 @@ class App {
     this.ui.updateDashboardStats({ saved: savedPlans.length });
 
     // Optional: Toast notification
+    this.ui.showToast('Plan saved successfully!', 'success');
     console.log('Saved:', plan);
   }
 
@@ -201,7 +209,7 @@ class App {
     const year = this.ui.elements.yearSelect.value;
 
     if (!countryCode) {
-      alert('Please select a country');
+      this.ui.showToast('Please select a country', 'error');
       return;
     }
 

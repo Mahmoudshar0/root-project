@@ -20,7 +20,6 @@
 .search-form-row {
   display: flex;
   gap: 16px;
-  align-items: flex-end;
 }
 
 .search-form-row .form-group {

@@ -1334,3 +1334,36 @@
   font-size: 14px;
   color: var(--slate-600);
 }
+
+/* ==================== EVENT FILTERS ==================== */
+.events-filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.event-filter {
+  padding: 8px 20px;
+  background: white;
+  border: 1px solid var(--slate-200);
+  border-radius: 20px;
+  color: var(--slate-600);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.event-filter:hover {
+  background: var(--slate-50);
+  border-color: var(--slate-300);
+}
+
+.event-filter.active {
+  background: var(--primary-500);
+  border-color: var(--primary-500);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
