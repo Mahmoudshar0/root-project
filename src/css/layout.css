@@ -1,0 +1,418 @@
+/* =====================================================
+   WANDERLUST - LAYOUT STYLES
+   Sidebar, Header, Navigation
+   ===================================================== */
+
+/* ==================== SIDEBAR ==================== */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  background: linear-gradient(
+    180deg,
+    var(--primary-900) 0%,
+    var(--primary-800) 50%,
+    var(--primary-700) 100%
+  );
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  transition: all var(--transition-normal);
+  overflow: hidden;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.logo-icon {
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.85) 100%
+  );
+  border-radius: var(--border-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-600);
+  font-size: 18px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.logo-text {
+  font-family: "Poppins", sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.5px;
+  transition: opacity var(--transition-fast);
+}
+
+/* Sidebar Toggle Button */
+.sidebar-toggle {
+  margin-left: auto;
+  width: 28px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+}
+
+/* Sidebar Collapsed State */
+.sidebar.collapsed {
+  width: 72px;
+}
+
+.sidebar.collapsed .logo-text,
+.sidebar.collapsed .nav-section-title,
+.sidebar.collapsed .nav-item span,
+.sidebar.collapsed .nav-badge,
+.sidebar.collapsed .user-info {
+  opacity: 0;
+  visibility: hidden;
+  width: 0;
+  overflow: hidden;
+}
+
+.sidebar.collapsed .sidebar-logo {
+  padding: 20px 15px;
+  justify-content: center;
+}
+
+.sidebar.collapsed .sidebar-toggle {
+  position: absolute;
+  right: -12px;
+  top: 28px;
+  background: var(--primary-600);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar.collapsed .sidebar-toggle i {
+  transform: rotate(180deg);
+}
+
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding: 12px;
+}
+
+.sidebar.collapsed .sidebar-user {
+  justify-content: center;
+  padding: 12px;
+}
+
+/* Adjust main wrapper when sidebar is collapsed */
+.sidebar.collapsed ~ .main-wrapper {
+  margin-left: 72px;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 16px 12px;
+  overflow-y: auto;
+}
+
+.nav-section {
+  margin-bottom: 24px;
+}
+
+.nav-section-title {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--primary-300);
+  padding: 0 12px;
+  margin-bottom: 8px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--border-radius-md);
+  color: var(--primary-200);
+  font-size: 14px;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  margin-bottom: 4px;
+  position: relative;
+}
+
+.nav-item i {
+  font-size: 18px;
+  width: 24px;
+  text-align: center;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+}
+
+.nav-item.active {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 24px;
+  background: white;
+  border-radius: 0 4px 4px 0;
+}
+
+.nav-badge {
+  margin-left: auto;
+  background: var(--danger-500);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius-md);
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-600);
+  font-size: 16px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.user-status {
+  color: var(--primary-300);
+  font-size: 12px;
+}
+
+/* Mobile Sidebar Overlay */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 90;
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--transition-normal);
+}
+
+.sidebar-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Mobile Sidebar Open State */
+.sidebar.mobile-open {
+  transform: translateX(0);
+}
+
+/* ==================== TOP HEADER ==================== */
+.top-header {
+  position: sticky;
+  top: 0;
+  height: var(--header-height);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--slate-200);
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 32px;
+  z-index: 50;
+}
+
+.mobile-menu-btn {
+  display: none;
+  width: 40px;
+  height: 40px;
+  background: var(--slate-100);
+  border-radius: var(--border-radius-sm);
+  align-items: center;
+  justify-content: center;
+  color: var(--slate-600);
+  font-size: 18px;
+}
+
+.header-title {
+  flex: 1;
+}
+
+.header-title h1 {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.header-title p {
+  font-size: 13px;
+  color: var(--slate-500);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--slate-100);
+  border-radius: var(--border-radius-lg);
+  min-width: 280px;
+  transition: all var(--transition-fast);
+}
+
+.header-search:focus-within {
+  background: white;
+  box-shadow: 0 0 0 3px var(--primary-100);
+}
+
+.header-search i {
+  color: var(--slate-400);
+}
+
+.header-search input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  color: var(--slate-700);
+}
+
+.header-search input::placeholder {
+  color: var(--slate-400);
+}
+
+.header-datetime {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--slate-100);
+  border-radius: var(--border-radius-md);
+  font-size: 13px;
+  color: var(--slate-600);
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  background: var(--slate-100);
+  border-radius: var(--border-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--slate-600);
+  transition: all var(--transition-fast);
+}
+
+.icon-btn:hover {
+  background: var(--slate-200);
+  color: var(--slate-800);
+}
+
+/* ==================== RESPONSIVE LAYOUT ==================== */
+@media (max-width: 1024px) {
+  .sidebar {
+    transform: translateX(-100%);
+    width: 280px; /* Standard width on mobile when open */
+    box-shadow: var(--shadow-xl);
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .main-wrapper {
+    margin-left: 0 !important; /* Override collapsed state margin */
+    width: 100%;
+  }
+
+  .mobile-menu-btn {
+    display: flex; /* Show hamburger button */
+  }
+
+  .top-header {
+    padding: 0 20px;
+  }
+
+  /* Hide sidebar toggle on mobile since we use hamburger */
+  .sidebar-toggle {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-search {
+    display: none; /* Hide search on small screens for simplicity */
+  }
+
+  .timestamp-display {
+    display: none; /* Hide time if space is tight */
+  }
+}
