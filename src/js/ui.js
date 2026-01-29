@@ -5,10 +5,8 @@ export class UIManager {
       citySelect: document.getElementById('global-city'),
       yearSelect: document.getElementById('global-year'),
       searchBtn: document.getElementById('global-search-btn'),
-      // Add more elements as needed
     };
 
-    // Initialize real-time clock
     this.initClock();
   }
 
@@ -30,7 +28,6 @@ export class UIManager {
       }
     };
 
-    // Update immediately and then every second
     updateClock();
     setInterval(updateClock, 1000);
   }
@@ -38,13 +35,10 @@ export class UIManager {
   populateCountryDropdown(countries) {
     const select = this.elements.countrySelect;
 
-    // 1. Hide original select
     select.style.display = 'none';
 
-    // 2. Sort countries safely
     const sortedCountries = countries.sort((a, b) => a.name.localeCompare(b.name));
 
-    // 3. Populate original select for fallback/sync
     select.innerHTML = '<option value="">Select Country</option>';
     sortedCountries.forEach(country => {
       const option = document.createElement('option');
@@ -53,18 +47,16 @@ export class UIManager {
       select.appendChild(option);
     });
 
-    // 4. Create/Get Custom Dropdown Container
     const parent = select.parentNode;
     let customDropdown = parent.querySelector('.custom-dropdown');
 
     if (customDropdown) {
-      customDropdown.remove(); // Re-create to ensure clean state
+      customDropdown.remove();
     }
 
     customDropdown = document.createElement('div');
     customDropdown.className = 'custom-dropdown';
 
-    // 5. Create Trigger
     const trigger = document.createElement('div');
     trigger.className = 'custom-dropdown-trigger';
     trigger.innerHTML = `
@@ -74,11 +66,9 @@ export class UIManager {
       <i class="fa-solid fa-chevron-down"></i>
     `;
 
-    // 6. Create Menu
     const menu = document.createElement('div');
     menu.className = 'custom-dropdown-menu';
 
-    // Search Input
     const searchContainer = document.createElement('div');
     searchContainer.className = 'dropdown-search-container';
     const searchInput = document.createElement('input');
@@ -87,11 +77,9 @@ export class UIManager {
     searchInput.placeholder = 'Search countries...';
     searchContainer.appendChild(searchInput);
 
-    // Options List
     const list = document.createElement('div');
     list.className = 'dropdown-options-list';
 
-    // Render Options Helper
     const renderOptions = (items) => {
       list.innerHTML = '';
       items.forEach(country => {
@@ -107,7 +95,6 @@ export class UIManager {
         `;
 
         item.addEventListener('click', () => {
-          // Select Action
           this.selectCustomOption(country, trigger, select, customDropdown);
         });
 
@@ -123,14 +110,10 @@ export class UIManager {
     customDropdown.appendChild(menu);
     parent.appendChild(customDropdown);
 
-    // 7. Event Listeners
-
-    // Toggle
     trigger.addEventListener('click', (e) => {
       e.stopPropagation();
       const isOpen = menu.classList.contains('open');
 
-      // Close all other dropdowns if any
       document.querySelectorAll('.custom-dropdown-menu.open').forEach(el => {
         if (el !== menu) {
           el.classList.remove('open');
@@ -158,7 +141,6 @@ export class UIManager {
       renderOptions(filtered);
     });
 
-    // Close on Outside Click
     document.addEventListener('click', (e) => {
       if (!customDropdown.contains(e.target)) {
         menu.classList.remove('open');
@@ -166,7 +148,6 @@ export class UIManager {
       }
     });
 
-    // Handle existing selection if re-populating
     if (select.value) {
       const selected = sortedCountries.find(c => c.countryCode === select.value);
       if (selected) {
@@ -179,24 +160,18 @@ export class UIManager {
   }
 
   selectCustomOption(country, trigger, select, container) {
-    // Update Trigger UI
     trigger.querySelector('.selected-value').innerHTML = `
       <img src="https://flagcdn.com/w40/${country.countryCode.toLowerCase()}.png" class="selected-flag">
       <span>${country.name}</span>
     `;
 
-    // Update Hidden Select
     select.value = country.countryCode;
-
-    // Dispatch Change Event
     const event = new Event('change', { bubbles: true });
     select.dispatchEvent(event);
 
-    // Close Menu
     container.querySelector('.custom-dropdown-menu').classList.remove('open');
     trigger.classList.remove('active');
 
-    // Highlight Selected Option
     container.querySelectorAll('.dropdown-option').forEach(el => {
       el.classList.toggle('selected', el.dataset.value === country.countryCode);
     });
@@ -221,7 +196,6 @@ export class UIManager {
       select.appendChild(option);
     });
 
-    // Select first option by default
     if (select.options.length > 0) {
       select.selectedIndex = 0;
     }
@@ -256,7 +230,7 @@ export class UIManager {
       document.getElementById('stat-holidays').textContent = stats.holidays;
     }
     if (stats.events !== undefined) {
-      document.getElementById('stat-events').textContent = stats.events; // Placeholder/Real
+      document.getElementById('stat-events').textContent = stats.events;
     }
     if (stats.saved !== undefined) {
       document.getElementById('stat-saved').textContent = stats.saved;
@@ -266,25 +240,21 @@ export class UIManager {
   updateCountryInfo(countryData, showDetails = false) {
     if (!countryData) return;
     console.log(countryData.capital ? countryData.capital[0] : 'N/A');
-    // --- 1. Top Selection Display ---
     const selFlag = document.getElementById('selected-country-flag');
     const selName = document.getElementById('selected-country-name');
     const selCity = document.getElementById('selected-city-name');
 
     if (selFlag) selFlag.src = countryData.flags?.png || '';
     if (selName) selName.textContent = countryData.name?.common || 'Country';
-    // If a city is selected in the global dropdown, use it; otherwise use Capital
     const cityVal = this.elements.citySelect.value;
     if (selCity) selCity.textContent = cityVal ? `• ${cityVal}` : (countryData.capital ? `• ${countryData.capital[0]}` : '');
 
-    // Unhide the sections
     const selectedDestContainer = document.getElementById('selected-destination');
     if (selectedDestContainer) selectedDestContainer.classList.remove('hidden');
 
     const countryInfoSection = document.getElementById('dashboard-country-info-section');
     if (countryInfoSection) countryInfoSection.classList.remove('hidden');
 
-    // Toggle Placeholder vs Details based on showDetails flag
     const infoContent = document.getElementById('dashboard-country-info');
     const placeholder = document.getElementById('country-info-placeholder');
 
@@ -296,7 +266,6 @@ export class UIManager {
       if (placeholder) placeholder.classList.remove('hidden');
     }
 
-    // --- 2. Country Info Header ---
     const flagImg = document.querySelector('.dashboard-country-flag');
     const nameEl = document.querySelector('.dashboard-country-title h3');
     const officialNameEl = document.querySelector('.official-name');
@@ -310,38 +279,27 @@ export class UIManager {
     if (officialNameEl) officialNameEl.textContent = countryData.name?.official || 'N/A';
     if (regionEl) regionEl.innerHTML = `<i class="fa-solid fa-location-dot"></i> ${countryData.region || ''} • ${countryData.subregion || ''}`;
 
-
-    // Clear Button Logic
     const clearBtn = document.getElementById('clear-selection-btn');
     if (clearBtn) {
-      // Remove existing listeners to prevent duplicates (simple CloneNode approach)
       const newBtn = clearBtn.cloneNode(true);
       clearBtn.parentNode.replaceChild(newBtn, clearBtn);
 
       newBtn.addEventListener('click', () => {
         this.clearSelection();
-        // Also reset dashboard to initial state if needed
-        this.renderWeather(null); // Clear weather or reset
-        // Or just hide the main section
+        this.renderWeather(null);
       });
     }
 
-    // --- 3. Local Time (Approximate using first timezone) ---
     const timeDisplay = document.getElementById('country-local-time');
     const timeZoneDisplay = document.querySelector('.local-time-zone');
     if (timeDisplay && countryData.timezones && countryData.timezones.length > 0) {
-      // Simple mock time update based on timezone offset could be complex. 
-      // For now, let's just show the UTC offset string provided by API.
-      // Or better, get current UTC time and apply offset.
-      const tz = countryData.timezones[0]; // e.g., "UTC+02:00"
+      const tz = countryData.timezones[0];
       timeZoneDisplay.textContent = tz;
 
-      // Helper to calc time
       try {
         const now = new Date();
         const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
 
-        // Parse offset "UTC+02:00" -> +2
         let offset = 0;
         if (tz !== 'UTC') {
           const modifier = tz.slice(3); // "+02:00"
@@ -357,32 +315,23 @@ export class UIManager {
       }
     }
 
-
-    // --- 4. Grid Details ---
-    // Get all detail boxes and update by index for reliability
     const detailBoxes = document.querySelectorAll('.dashboard-country-detail');
-
-    // Capital (index 0)
     if (detailBoxes[0]) {
       const val = detailBoxes[0].querySelector('.value');
       if (val) val.textContent = countryData.capital ? countryData.capital[0] : 'N/A';
     }
-    // Population (index 1)
     if (detailBoxes[1]) {
       const val = detailBoxes[1].querySelector('.value');
       if (val) val.textContent = countryData.population ? countryData.population.toLocaleString() : 'N/A';
     }
-    // Area (index 2)
     if (detailBoxes[2]) {
       const val = detailBoxes[2].querySelector('.value');
       if (val) val.textContent = countryData.area ? `${countryData.area.toLocaleString()} km²` : 'N/A';
     }
-    // Continent (index 3)
     if (detailBoxes[3]) {
       const val = detailBoxes[3].querySelector('.value');
       if (val) val.textContent = countryData.continents ? countryData.continents[0] : 'N/A';
     }
-    // Calling Code (index 4)
     if (detailBoxes[4]) {
       const val = detailBoxes[4].querySelector('.value');
       let phone = 'N/A';
@@ -393,22 +342,16 @@ export class UIManager {
       }
       if (val) val.textContent = phone;
     }
-    // Driving Side (index 5)
     if (detailBoxes[5]) {
       const val = detailBoxes[5].querySelector('.value');
       if (val) val.textContent = countryData.car?.side ? (countryData.car.side.charAt(0).toUpperCase() + countryData.car.side.slice(1)) : 'N/A';
     }
-    // Week Starts (index 6)
     if (detailBoxes[6]) {
       const val = detailBoxes[6].querySelector('.value');
       if (val) val.textContent = countryData.startOfWeek ? (countryData.startOfWeek.charAt(0).toUpperCase() + countryData.startOfWeek.slice(1)) : 'N/A';
     }
 
-
-    // --- 5. Extra Sections (Currency, Language, Neighbors) ---
     const extraSections = document.querySelectorAll('.dashboard-country-extra');
-
-    // Currency (index 0)
     if (extraSections[0]) {
       const container = extraSections[0].querySelector('.extra-tags');
       if (container) {
@@ -425,8 +368,6 @@ export class UIManager {
         }
       }
     }
-
-    // Languages (index 1)
     if (extraSections[1]) {
       const container = extraSections[1].querySelector('.extra-tags');
       if (container) {
@@ -443,8 +384,6 @@ export class UIManager {
         }
       }
     }
-
-    // Neighbors (index 2)
     if (extraSections[2]) {
       const container = extraSections[2].querySelector('.extra-tags');
       if (container) {
@@ -461,8 +400,6 @@ export class UIManager {
         }
       }
     }
-
-    // Map Button
     const mapBtn = document.querySelector('.btn-map-link');
     if (mapBtn && countryData.maps?.googleMaps) {
       mapBtn.href = countryData.maps.googleMaps;
@@ -476,14 +413,11 @@ export class UIManager {
     document.querySelectorAll('.nav-item').forEach(nav => {
       nav.classList.remove('active');
     });
-
-    // Show target view
     const targetView = document.getElementById(`${viewId}-view`);
     if (targetView) {
       targetView.classList.add('active');
     }
 
-    // Active nav item
     const navItem = document.querySelector(`.nav-item[data-view="${viewId}"]`);
     if (navItem) {
       navItem.classList.add('active');
@@ -492,7 +426,7 @@ export class UIManager {
 
   renderHolidays(holidays, year, countryName) {
     const container = document.getElementById('holidays-content');
-    container.innerHTML = ''; // Clear static content
+    container.innerHTML = '';
 
     if (holidays.length === 0) {
       container.innerHTML = '<p>No holidays found.</p>';
@@ -522,8 +456,6 @@ export class UIManager {
       container.appendChild(card);
     });
 
-    // Update header selection info
-    // Note: Assuming elements exist, might need to be more robust
     const badge = document.querySelector('#holidays-selection .current-selection-badge');
     if (badge) {
       badge.querySelector('span:nth-child(2)').textContent = countryName;

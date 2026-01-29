@@ -14,7 +14,6 @@ class App {
   async init() {
     console.log('Wanderlust App Initialized');
 
-    // Fetch Countries on Load
     const countries = await this.api.fetchCountries();
     this.ui.populateCountryDropdown(countries);
 
@@ -22,21 +21,18 @@ class App {
   }
 
   setupEventListeners() {
-    // Search Button Click
     if (this.ui.elements.searchBtn) {
       this.ui.elements.searchBtn.addEventListener('click', () => {
         this.handleSearch();
       });
     }
 
-    // Country Change Listener
     if (this.ui.elements.countrySelect) {
       this.ui.elements.countrySelect.addEventListener('change', (e) => {
         this.handleCountryChange(e.target.value);
       });
     }
 
-    // Navigation Links
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', (e) => {
         e.preventDefault();
@@ -45,39 +41,32 @@ class App {
       });
     });
 
-    // Handle browser back/forward
     window.addEventListener('popstate', (e) => {
       const view = e.state?.view || 'dashboard';
       this.ui.switchView(view);
       this.loadViewData(view);
     });
 
-    // Check URL on page load
     this.handleInitialRoute();
 
-    // Global Event Delegation (Save & Delete)
     document.body.addEventListener('click', (e) => {
-      // Save
       const saveBtn = e.target.closest('.holiday-action-btn') || e.target.closest('.event-card-save') || e.target.closest('.btn-event');
       if (saveBtn) {
         this.handleSave(saveBtn);
         return;
       }
 
-      // Delete
       const deleteBtn = e.target.closest('.delete-plan-btn') || e.target.closest('.plan-remove-btn');
       if (deleteBtn) {
         this.handleDelete(deleteBtn);
       }
 
-      // Filter Plans
       const filterBtn = e.target.closest('.plan-filter');
       if (filterBtn) {
         const filter = filterBtn.dataset.filter;
         this.renderMyPlansView(filter);
       }
 
-      // Clear All Plans
       if (e.target.closest('#clear-all-plans-btn')) {
         if (confirm('Are you sure you want to delete all saved plans?')) {
           this.storage.clearAllPlans();
@@ -86,13 +75,11 @@ class App {
       }
     });
 
-    // Currency Converter
     const convertBtn = document.getElementById('convert-btn');
     if (convertBtn) {
       convertBtn.addEventListener('click', () => this.handleCurrencyConversion());
     }
 
-    // Clear Selection Button
     const clearBtn = document.getElementById('clear-selection-btn');
     if (clearBtn) {
       clearBtn.addEventListener('click', () => {
@@ -100,23 +87,19 @@ class App {
       });
     }
 
-    // Sidebar Toggle
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const sidebar = document.getElementById('sidebar');
     if (sidebarToggle && sidebar) {
       sidebarToggle.addEventListener('click', () => {
         sidebar.classList.toggle('collapsed');
-        // Save preference to localStorage
         localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
       });
 
-      // Restore sidebar state from localStorage
       if (localStorage.getItem('sidebarCollapsed') === 'true') {
         sidebar.classList.add('collapsed');
       }
     }
 
-    // Mobile Menu Button
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
     const sidebarOverlay = document.getElementById('sidebar-overlay');
     if (mobileMenuBtn && sidebar) {
@@ -125,13 +108,11 @@ class App {
         sidebarOverlay?.classList.toggle('active');
       });
 
-      // Close sidebar when clicking overlay
       sidebarOverlay?.addEventListener('click', () => {
         sidebar.classList.remove('mobile-open');
         sidebarOverlay.classList.remove('active');
       });
     }
-    // Event Filters
     document.querySelectorAll('.event-filter').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const category = e.target.dataset.category;
@@ -355,15 +336,12 @@ class App {
   }
 
   navigateTo(view) {
-    // Update URL
     const url = view === 'dashboard' ? '/' : `/${view}`;
     history.pushState({ view }, '', url);
 
-    // Switch view and load data
     this.ui.switchView(view);
     this.loadViewData(view);
 
-    // Auto-close sidebar on mobile
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebar-overlay');
     if (sidebar && sidebar.classList.contains('mobile-open')) {
@@ -376,18 +354,14 @@ class App {
     const path = window.location.pathname;
     const validViews = ['dashboard', 'holidays', 'events', 'weather', 'long-weekends', 'sun-times', 'my-plans'];
 
-    // Extract view from path (e.g., "/holidays" -> "holidays")
     let view = path.replace('/', '').replace('.html', '') || 'dashboard';
 
-    // Validate view
     if (!validViews.includes(view)) {
       view = 'dashboard';
     }
 
-    // Set initial state
     history.replaceState({ view }, '', path === '/' ? '/' : `/${view}`);
 
-    // Switch to the view (don't load data yet - user needs to select country first)
     if (view !== 'dashboard') {
       this.ui.switchView(view);
     }
