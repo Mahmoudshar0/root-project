@@ -19,4 +19,8 @@ export class StorageManager {
     plans = plans.filter(p => p.id !== id);
     localStorage.setItem(this.storageKey, JSON.stringify(plans));
   }
+
+  clearAllPlans() {
+    localStorage.setItem(this.storageKey, JSON.stringify([]));
+  }
 }

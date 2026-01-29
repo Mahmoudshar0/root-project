@@ -7,6 +7,32 @@ export class UIManager {
       searchBtn: document.getElementById('global-search-btn'),
       // Add more elements as needed
     };
+
+    // Initialize real-time clock
+    this.initClock();
+  }
+
+  initClock() {
+    const updateClock = () => {
+      const datetimeEl = document.getElementById('current-datetime');
+      if (datetimeEl) {
+        const now = new Date();
+        const options = {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true
+        };
+        datetimeEl.textContent = now.toLocaleString('en-US', options);
+      }
+    };
+
+    // Update immediately and then every second
+    updateClock();
+    setInterval(updateClock, 1000);
   }
 
   populateCountryDropdown(countries) {
@@ -444,7 +470,6 @@ export class UIManager {
   }
 
   switchView(viewId) {
-    // Hide all views
     document.querySelectorAll('.view').forEach(view => {
       view.classList.remove('active');
     });
@@ -507,7 +532,6 @@ export class UIManager {
   }
 
   renderEvents(events) {
-    // Store events for filtering
     this.currentEvents = events || [];
 
     const container = document.getElementById('events-content');
@@ -524,7 +548,7 @@ export class UIManager {
       card.innerHTML = `
                 <div class="event-card-image">
                     <img src="${event.image}" alt="${event.name}">
-                    <span class="event-card-category">${event.category}</span>
+                    <span class="event-card-category">Event</span>
                     <button class="event-card-save" data-id="${event.id}" data-title="${event.name}" data-date="${event.date}" data-type="event" data-extra="${event.location}"><i class="fa-regular fa-heart"></i></button>
                 </div>
                 <div class="event-card-body">
@@ -542,6 +566,55 @@ export class UIManager {
     });
   }
 
+  filterEvents(category) {
+    const filters = document.querySelectorAll('.event-filter');
+    filters.forEach(f => {
+      if (f.dataset.category === category) f.classList.add('active');
+      else f.classList.remove('active');
+    });
+
+    const container = document.getElementById('events-content');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    const filtered = category === 'all'
+      ? this.currentEvents
+      : this.currentEvents.filter(e => {
+        const cat = e.category?.toLowerCase() || '';
+        const search = category.toLowerCase();
+        return cat.includes(search) || search.includes(cat);
+      });
+
+    if (!filtered || filtered.length === 0) {
+      container.innerHTML = '<div class="empty-state"><p>No events found for this category.</p></div>';
+      return;
+    }
+
+    filtered.forEach(event => {
+      const card = document.createElement('div');
+      card.className = 'event-card';
+      card.innerHTML = `
+        <div class="event-card-image">
+          <img src="${event.image}" alt="${event.name}">
+          <span class="event-card-category">${event.category}</span>
+          <button class="event-card-save" data-id="${event.id}" data-title="${event.name}" data-date="${event.date}" data-type="event" data-extra="${event.location}"><i class="fa-regular fa-heart"></i></button>
+        </div>
+        <div class="event-card-body">
+          <h3>${event.name}</h3>
+          <div class="event-card-info">
+            <div><i class="fa-regular fa-calendar"></i> ${new Date(event.date).toDateString()}</div>
+            <div><i class="fa-solid fa-location-dot"></i> ${event.location}</div>
+          </div>
+          <div class="event-card-footer">
+            <button class="btn-event" data-id="${event.id}" data-title="${event.name}" data-date="${event.date}" data-type="event" data-extra="${event.location}"><i class="fa-regular fa-heart"></i> Save</button>
+          </div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
   renderWeather(weatherData, city) {
     const container = document.getElementById('weather-content');
     if (!container) return;
@@ -554,7 +627,6 @@ export class UIManager {
     const current = weatherData.current;
     const daily = weatherData.daily;
 
-    // Weather code to description and icon mapping
     const getWeatherInfo = (code) => {
       if (code === 0) return { icon: 'fa-sun', desc: 'Clear sky', type: 'weather-sunny' };
       if (code <= 3) return { icon: 'fa-cloud-sun', desc: 'Partly cloudy', type: 'weather-cloudy' };
@@ -570,7 +642,6 @@ export class UIManager {
     const today = new Date();
     const dateStr = today.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
 
-    // Generate hourly forecast (simulate from daily data)
     let hourlyHTML = '';
     const hours = ['Now', '2 PM', '3 PM', '4 PM', '5 PM', '6 PM', '7 PM', '8 PM', '9 PM', '10 PM', '11 PM', '12 AM', '1 AM', '2 AM', '3 AM', '4 AM', '5 AM', '6 AM', '7 AM', '8 AM'];
 
@@ -590,7 +661,6 @@ export class UIManager {
       `;
     }
 
-    // Generate 7-day forecast HTML
     let forecastHTML = '';
     for (let i = 0; i < 7; i++) {
       const date = new Date(daily.time[i]);
@@ -616,7 +686,6 @@ export class UIManager {
     }
 
     container.innerHTML = `
-      <!-- Weather Hero Card -->
       <div class="weather-hero-card ${currentWeather.type}">
         <div class="weather-hero-bg"></div>
         <div class="weather-hero-content">
@@ -647,7 +716,6 @@ export class UIManager {
         </div>
       </div>
 
-      <!-- Weather Details Grid -->
       <div class="weather-details-grid">
         <div class="weather-detail-card">
           <div class="detail-icon humidity"><i class="fa-solid fa-droplet"></i></div>
@@ -727,7 +795,6 @@ export class UIManager {
     const container = document.getElementById('lw-content');
     container.innerHTML = '';
 
-    // Header
     const headerBadge = document.querySelector('#long-weekends-view .current-selection-badge');
     if (headerBadge) {
       headerBadge.querySelector('.selection-year').textContent = year;
@@ -742,14 +809,12 @@ export class UIManager {
       const startDate = new Date(lw.startDate);
       const endDate = new Date(lw.endDate);
 
-      // Format dates
       const startStr = startDate.toLocaleDateString('default', { month: 'short', day: 'numeric' });
       const endStr = endDate.toLocaleDateString('default', { month: 'short', day: 'numeric' });
 
       const card = document.createElement('div');
       card.className = 'lw-card';
 
-      // Simple logic for "status" based on needBridgeDay
       const statusClass = lw.needBridgeDay ? 'warning' : 'success';
       const statusIcon = lw.needBridgeDay ? 'fa-info-circle' : 'fa-check-circle';
       const statusText = lw.needBridgeDay ? 'Requires bridge day' : 'No extra days off needed!';
@@ -772,17 +837,11 @@ export class UIManager {
 
     const times = data.results;
 
-    // Helper to formatting UTC ISO to local time string is tricky without timezone.
-    // The API returns UTC if formatted=0. To keep it simple, let's just display the raw time or basic parse.
-    // Ideally we use a library or simply .toLocaleTimeString if we had the timezone offset.
-    // For this demo, let's just format the time part of the ISO string.
-
     const formatTime = (isoString) => {
       if (!isoString) return '--:--';
       return new Date(isoString).toLocaleTimeString('default', { hour: '2-digit', minute: '2-digit' });
     };
 
-    // Header
     const headerBadge = document.querySelector('#sun-times-view .current-selection-badge');
     if (headerBadge) headerBadge.querySelector('.selection-city').textContent = `• ${city} `;
 
@@ -791,7 +850,6 @@ export class UIManager {
       mainCard.querySelector('.sun-location h2').innerHTML = `<i class="fa-solid fa-location-dot"></i> ${city}`;
       mainCard.querySelector('.sun-date-display .date').textContent = new Date().toLocaleDateString('default', { month: 'long', day: 'numeric', year: 'numeric' });
 
-      // Cards
       const updateCard = (cls, time, label) => {
         const el = mainCard.querySelector(`.sun-time-card.${cls}`);
         if (el) {
@@ -803,24 +861,14 @@ export class UIManager {
       updateCard('sunrise', times.sunrise);
       updateCard('sunset', times.sunset);
       updateCard('noon', times.solar_noon);
-      updateCard('porn', times.civil_twilight_begin, 'Dawn'); // dawn matches civil begin
+      updateCard('porn', times.civil_twilight_begin, 'Dawn');
       updateCard('dusk', times.civil_twilight_end);
 
-      // Day Length
       const dayLengthEl = document.querySelector('.day-stat .value');
-      // API returns day_length in seconds (number) or string depending on version. 
-      // Docs say `day_length`: "13:00:00" usually. 
-      // But with formatted=0 it might be seconds. Let's check docs or safe handle.
-      // If we use formatted=0, it returns seconds as numbers sometimes? 
-      // Actually sunrise-sunset.org `formatted = 0` returns ISO8601 strings. 
-      // `day_length` is usually in seconds.
-
       if (times.day_length) {
         const hours = Math.floor(times.day_length / 3600);
         const mins = Math.floor((times.day_length % 3600) / 60);
         if (dayLengthEl) dayLengthEl.textContent = `${hours}h ${mins}m`;
-
-        // Progress bar
         const percent = (times.day_length / 86400) * 100;
         const fill = document.querySelector('.day-progress-fill');
         if (fill) fill.style.width = `${percent}%`;
@@ -846,7 +894,6 @@ export class UIManager {
       const card = document.createElement('div');
       card.className = 'plan-card';
 
-      // Design Configuration based on Type
       let badgeText = 'PLAN';
       let badgeClass = 'badge-other';
       let icon = 'fa-star';
@@ -855,18 +902,17 @@ export class UIManager {
 
       if (plan.type === 'holiday') {
         badgeText = 'HOLIDAY';
-        badgeClass = 'badge-holiday'; // Green
-        icon = 'fa-calendar-days'; // Though design shows no icon in body, mockup has no icon. Just badge.
+        badgeClass = 'badge-holiday';
+        icon = 'fa-calendar-days';
         infoText = plan.extra || 'Public Holiday';
       } else if (plan.type === 'longweekend') {
         badgeText = 'LONG WEEKEND';
-        badgeClass = 'badge-longweekend'; // Orange
+        badgeClass = 'badge-longweekend';
         infoText = plan.extra || 'Bridge Day Status';
       } else if (plan.type === 'event') {
         badgeText = 'EVENT';
-        badgeClass = 'badge-event'; // Purple
+        badgeClass = 'badge-event';
         infoIcon = 'fa-location-dot';
-        // infoText should be location/venue
       }
 
       card.innerHTML = `
@@ -895,9 +941,6 @@ export class UIManager {
       container.appendChild(card);
     });
 
-    // Event delegation handling is in main.js
-
-    // Update counts
     const countBadge = document.getElementById('plans-count');
     if (countBadge) {
       countBadge.textContent = plans.length;
@@ -934,7 +977,6 @@ export class UIManager {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
 
-    // Icon based on type
     let iconClass = 'fa-circle-info';
     if (type === 'success') iconClass = 'fa-circle-check';
     if (type === 'error') iconClass = 'fa-circle-exclamation';
@@ -948,15 +990,12 @@ export class UIManager {
       </button>
     `;
 
-    // Add to container
     container.appendChild(toast);
 
-    // Auto remove after 3 seconds
     const timeout = setTimeout(() => {
       removeToast();
     }, 3000);
 
-    // Close button
     const closeBtn = toast.querySelector('.toast-close');
     closeBtn.addEventListener('click', () => {
       clearTimeout(timeout);
@@ -971,5 +1010,44 @@ export class UIManager {
         }
       });
     }
+  }
+
+  showLoader(message = 'Loading...') {
+    const overlay = document.getElementById('loading-overlay');
+    const text = document.getElementById('loading-text');
+    if (overlay) {
+      if (text) text.textContent = message;
+      overlay.classList.remove('hidden');
+    }
+  }
+
+  hideLoader() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+      overlay.classList.add('hidden');
+    }
+  }
+
+  updateAllViewBadges(countryData, city, year) {
+    const countryName = countryData?.name?.common || 'Unknown';
+    const countryCode = countryData?.cca2?.toLowerCase() || '';
+    const flagUrl = `https://flagcdn.com/w40/${countryCode}.png`;
+
+    // Get all view badges
+    const badges = document.querySelectorAll('.current-selection-badge');
+    badges.forEach(badge => {
+      const flag = badge.querySelector('.selection-flag');
+      const nameSpan = badge.querySelector('span:not(.selection-city):not(.selection-year)');
+      const citySpan = badge.querySelector('.selection-city');
+      const yearSpan = badge.querySelector('.selection-year');
+
+      if (flag) {
+        flag.src = flagUrl;
+        flag.alt = countryName;
+      }
+      if (nameSpan) nameSpan.textContent = countryName;
+      if (citySpan) citySpan.textContent = `• ${city}`;
+      if (yearSpan) yearSpan.textContent = year;
+    });
   }
 }

@@ -41,22 +41,19 @@ class App {
       item.addEventListener('click', (e) => {
         e.preventDefault();
         const view = item.getAttribute('data-view');
-        this.ui.switchView(view);
-
-        // Specific View Logic
-        if (view === 'my-plans') {
-          this.renderMyPlansView();
-        }
-
-        // Auto-close sidebar on mobile
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('sidebar-overlay');
-        if (sidebar && sidebar.classList.contains('mobile-open')) {
-          sidebar.classList.remove('mobile-open');
-          if (overlay) overlay.classList.remove('active');
-        }
+        this.navigateTo(view);
       });
     });
+
+    // Handle browser back/forward
+    window.addEventListener('popstate', (e) => {
+      const view = e.state?.view || 'dashboard';
+      this.ui.switchView(view);
+      this.loadViewData(view);
+    });
+
+    // Check URL on page load
+    this.handleInitialRoute();
 
     // Global Event Delegation (Save & Delete)
     document.body.addEventListener('click', (e) => {
@@ -83,7 +80,7 @@ class App {
       // Clear All Plans
       if (e.target.closest('#clear-all-plans-btn')) {
         if (confirm('Are you sure you want to delete all saved plans?')) {
-          this.storage.savePlans([]);
+          this.storage.clearAllPlans();
           this.renderMyPlansView();
         }
       }
@@ -144,7 +141,6 @@ class App {
   }
 
   handleSave(btn) {
-    // Extract data from button
     const id = btn.dataset.id || Date.now();
     const title = btn.dataset.title;
     const date = btn.dataset.date;
@@ -157,7 +153,6 @@ class App {
     const plan = { id, title, date, type, location, extra };
     this.storage.savePlan(plan);
 
-    // Visual feedback
     const icon = btn.querySelector('i');
     if (icon) {
       icon.classList.remove('fa-regular');
@@ -165,11 +160,9 @@ class App {
       icon.style.color = 'var(--primary-500)';
     }
 
-    // Update stats immediately
     const savedPlans = this.storage.getPlans();
     this.ui.updateDashboardStats({ saved: savedPlans.length });
 
-    // Optional: Toast notification
     this.ui.showToast('Plan saved successfully!', 'success');
     console.log('Saved:', plan);
   }
@@ -177,24 +170,19 @@ class App {
   async handleCountryChange(countryCode) {
     if (!countryCode) return;
 
-    // Disable city select while loading
     this.ui.toggleCitySelect(false);
 
     try {
-      // Fetch Country Details (includes capital)
       const data = await this.api.fetchCountryDetails(countryCode);
 
       if (data && data.capital) {
-        // Populate City Select with Capital(s)
         this.ui.populateCityDropdown(data.capital);
         this.ui.toggleCitySelect(true);
 
-        // Update Selection Badge (Show Badge, Hide Details)
         this.ui.updateCountryInfo(data, false);
       } else {
-        // Handle case where no capital info
-        this.ui.populateCityDropdown([]); // Empty or default
-        this.ui.toggleCitySelect(true); // Re-enable but empty? Or keep disabled?
+        this.ui.populateCityDropdown([]);
+        this.ui.toggleCitySelect(true);
       }
     } catch (error) {
       console.error('Error handling country change:', error);
@@ -204,7 +192,7 @@ class App {
 
   handleSearch() {
     const countryCode = this.ui.elements.countrySelect.value;
-    const countryName = this.ui.elements.countrySelect.options[this.ui.elements.countrySelect.selectedIndex].text.split(' ').slice(1).join(' '); // Hacky way to get name
+    const countryName = this.ui.elements.countrySelect.options[this.ui.elements.countrySelect.selectedIndex].text.split(' ').slice(1).join(' ');
     const city = this.ui.elements.citySelect.value;
     const year = this.ui.elements.yearSelect.value;
 
@@ -213,68 +201,114 @@ class App {
       return;
     }
 
-    // Store Current State
     this.state = { countryCode, countryName, city, year };
 
     console.log(`Searching for: ${countryCode}, ${city}, ${year}`);
-    // Trigger Dashboard Update (Phase 2 core)
     this.updateDashboard(countryCode, city, year);
   }
 
   async updateDashboard(countryCode, city, year) {
-    // Show loading state (optional)
-
-    // 1. Fetch Country Details
     const countryData = await this.api.fetchCountryDetails(countryCode);
-    this.ui.updateCountryInfo(countryData, true); // True = Show Details
+    this.state.countryData = countryData;
+    this.ui.updateCountryInfo(countryData, true);
+    this.ui.updateAllViewBadges(countryData, city, year);
 
-    // 2. Fetch Holidays for Stats & View
-    const holidays = await this.api.fetchHolidays(year, countryCode);
-    this.ui.renderHolidays(holidays, year, this.state?.countryName || countryCode);
-
-    // 3. Update Stats
     const savedPlans = this.storage.getPlans();
-
     this.ui.updateDashboardStats({
-      holidays: holidays.length,
-      events: '500+',
+      holidays: '--',
+      events: '--',
       saved: savedPlans.length
     });
 
-    // 4. Fetch Events
-    const events = await this.api.fetchEvents(city);
-    this.ui.renderEvents(events);
+    const countryName = countryData?.name?.common || this.state.countryName || 'Unknown';
+    const capital = countryData?.capital?.[0] || city || 'Unknown';
+    this.ui.showToast(`Exploring ${countryName}, ${capital}!`, 'success');
+  }
 
-    // 5. Fetch Weather & Sun Times
-    if (countryData.capitalInfo && countryData.capitalInfo.latlng) {
-      const [lat, lon] = countryData.capitalInfo.latlng;
-      const weather = await this.api.fetchWeather(lat, lon);
-      console.log(weather)
-      this.ui.renderWeather(weather, city);
-
-      const sunTimes = await this.api.fetchSunTimes(lat, lon);
-      this.ui.renderSunTimes(sunTimes, city);
+  async loadViewData(view) {
+    if (!this.state || !this.state.countryCode) {
+      if (view !== 'dashboard' && view !== 'my-plans') {
+        this.ui.showToast('Please select a country first', 'error');
+      }
+      if (view === 'my-plans') {
+        this.renderMyPlansView();
+      }
+      return;
     }
 
-    // 6. Fetch Long Weekends
-    const weekends = await this.api.fetchLongWeekends(year, countryCode);
-    this.ui.renderLongWeekends(weekends, year);
+    const { countryCode, city, year, countryData, countryName } = this.state;
 
-    // 7. Update Stats with explicit count
-    // (Optional: update stats logic if we want to show LW count)
+    const loadingMessages = {
+      'holidays': 'Finding holidays...',
+      'events': 'Discovering events...',
+      'weather': 'Fetching weather forecast...',
+      'long-weekends': 'Finding long weekends...',
+      'sun-times': 'Calculating sun times...'
+    };
+
+    if (loadingMessages[view]) {
+      this.ui.showLoader(loadingMessages[view]);
+    }
+
+    try {
+      switch (view) {
+        case 'holidays':
+          const holidays = await this.api.fetchHolidays(year, countryCode);
+          this.ui.renderHolidays(holidays, year, countryName || countryCode);
+          this.ui.updateDashboardStats({ holidays: holidays.length });
+          break;
+
+        case 'events':
+          const events = await this.api.fetchEvents(city, countryCode);
+          this.ui.renderEvents(events);
+          this.ui.updateDashboardStats({ events: events.length });
+          break;
+
+        case 'weather':
+          if (countryData?.capitalInfo?.latlng) {
+            const [lat, lon] = countryData.capitalInfo.latlng;
+            const weather = await this.api.fetchWeather(lat, lon);
+            this.ui.renderWeather(weather, city);
+          }
+          break;
+
+        case 'long-weekends':
+          const weekends = await this.api.fetchLongWeekends(year, countryCode);
+          this.ui.renderLongWeekends(weekends, year);
+          break;
+
+        case 'sun-times':
+          if (countryData?.capitalInfo?.latlng) {
+            const [lat, lon] = countryData.capitalInfo.latlng;
+            const sunTimes = await this.api.fetchSunTimes(lat, lon);
+            this.ui.renderSunTimes(sunTimes, city);
+          }
+          break;
+
+        case 'my-plans':
+          this.renderMyPlansView();
+          break;
+
+        default:
+          break;
+      }
+    } catch (error) {
+      console.error('Error loading view data:', error);
+      this.ui.showToast('Failed to load data', 'error');
+    } finally {
+      this.ui.hideLoader();
+    }
   }
 
   handleDelete(btn) {
     const id = btn.dataset.id;
     this.storage.deletePlan(id);
 
-    // Update UI (maintain current filter if possible)
     const activeFilterBtn = document.querySelector('.plan-filter.active');
     const currentFilter = activeFilterBtn ? activeFilterBtn.dataset.filter : 'all';
 
     this.renderMyPlansView(currentFilter);
 
-    // Update dashboard stats too
     const plans = this.storage.getPlans();
     this.ui.updateDashboardStats({ saved: plans.length });
   }
@@ -282,7 +316,6 @@ class App {
   renderMyPlansView(filter = 'all') {
     const plans = this.storage.getPlans();
 
-    // Calculate counts
     const counts = {
       all: plans.length,
       holiday: plans.filter(p => p.type === 'holiday').length,
@@ -290,17 +323,14 @@ class App {
       longweekend: plans.filter(p => p.type === 'longweekend').length
     };
 
-    // Update UI Stats
     this.ui.updateFilterCounts(counts);
     this.ui.setActiveFilter(filter);
 
-    // Apply Filter
     let filteredPlans = plans;
     if (filter !== 'all') {
       filteredPlans = plans.filter(p => p.type === filter);
     }
 
-    // Render
     this.ui.renderSavedPlans(filteredPlans);
   }
 
@@ -316,7 +346,6 @@ class App {
       const rate = data.rates[to];
       const result = amount * rate;
 
-      // Update UI (Direct DOM manipulation for simplicity here or add UIManager method)
       document.querySelector('.conversion-from .amount').textContent = amount.toFixed(2);
       document.querySelector('.conversion-from .currency-code').textContent = from;
       document.querySelector('.conversion-to .amount').textContent = result.toFixed(2);
@@ -324,9 +353,47 @@ class App {
       document.querySelector('.exchange-rate-info p').textContent = `1 ${from} = ${rate.toFixed(4)} ${to}`;
     }
   }
+
+  navigateTo(view) {
+    // Update URL
+    const url = view === 'dashboard' ? '/' : `/${view}`;
+    history.pushState({ view }, '', url);
+
+    // Switch view and load data
+    this.ui.switchView(view);
+    this.loadViewData(view);
+
+    // Auto-close sidebar on mobile
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (sidebar && sidebar.classList.contains('mobile-open')) {
+      sidebar.classList.remove('mobile-open');
+      if (overlay) overlay.classList.remove('active');
+    }
+  }
+
+  handleInitialRoute() {
+    const path = window.location.pathname;
+    const validViews = ['dashboard', 'holidays', 'events', 'weather', 'long-weekends', 'sun-times', 'my-plans'];
+
+    // Extract view from path (e.g., "/holidays" -> "holidays")
+    let view = path.replace('/', '').replace('.html', '') || 'dashboard';
+
+    // Validate view
+    if (!validViews.includes(view)) {
+      view = 'dashboard';
+    }
+
+    // Set initial state
+    history.replaceState({ view }, '', path === '/' ? '/' : `/${view}`);
+
+    // Switch to the view (don't load data yet - user needs to select country first)
+    if (view !== 'dashboard') {
+      this.ui.switchView(view);
+    }
+  }
 }
 
-// Initialize the app when the DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
   window.app = new App();
 });
