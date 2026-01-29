@@ -814,11 +814,11 @@ export class UIManager {
 
     if (plans.length === 0) {
       container.innerHTML = `
-      < div class="empty-state" >
+      <div class="empty-state">
                 <div class="empty-icon"><i class="fa-solid fa-heart-crack"></i></div>
                 <h3>No Saved Plans Yet</h3>
                 <p>Start exploring and save holidays, events, or long weekends you like!</p>
-              </div > `;
+              </div>`;
       return;
     }
 
